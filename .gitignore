@@ -1,0 +1,37 @@
+# Node.js
+node_modules/
+
+# Archivos de log
+*.log
+
+# Archivos de configuración de editor
+.vscode/
+.idea/
+
+# Archivos de TypeScript compilados
+dist/
+build/
+
+# Archivos de dependencias globales
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos del entorno
+.env
+
+# Dependencias del entorno
+.env.local
+.env.*.local
+
+# Archivos de test (si usas test frameworks)
+coverage/
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+
+# Archivos generados por herramientas de base de datos o migraciones (si es necesario)
+*.sql
+*.sqlite
