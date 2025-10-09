@@ -35,7 +35,7 @@ export class CuentaContableController {
       if (!eliminado) {
         res.status(404).json({ message: "Cuenta no encontrada" });
       }else{
-         res
+        res
         .status(200)
         .json({ message: "Registro eliminado con id: " + req.params.id });
       }

@@ -1,17 +1,28 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity({ schema: "PAYROLL_PAYMENT_USR", name: "USER_TEST" })
+@Entity({ schema: "CONTABILIDAD", name: "USUARIO" })
 export class User {
 
-  @PrimaryGeneratedColumn({name: "ID"})
+  @PrimaryGeneratedColumn({name: "ID_USUARIO"})
   id!: number;
 
-  @Column({name: "FIRSTNAME"})
-  firstName!: string;
+  @Column({name: "USERNAME"})
+  username!: string;
 
-  @Column({name: "LASTNAME"})
-  lastName!: string;
+  @Column({name: "PASSWORD"})
+  password!: string;
 
-  @Column({name: 'AGE'})
-  age!: number;
+  @Column({name: "NOMBRE"})
+  nombre!: string;
+  
+  @Column({name: "EMAIL"})
+  email!: string;
+
+  @Column({name: "ROL"})
+  rol!: string;
+
+  @Column({name: 'ESTADO'})
+  estado!: string;
+
+
 }
