@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import userRoutes from "./routers/userRoutes"; // Importamos las rutas de usuario
 import CuentaContableRoutes from "./routers/CuentaContableRoutes";
+import reportRoutes from "./routers/reportRoutes";
 import empresaRoutes from './routers/EmpresaRoutes';
 import periodoContableRoutes from './routers/PeriodoContableRoutes';
 import libroDiario from './routers/LibroDiarioRoutes';
@@ -19,6 +20,7 @@ app.use("/contabilidad", userRoutes);
 app.use('/contabilidad/cuentas-contables', CuentaContableRoutes);
 app.use('/contabilidad/empresa', empresaRoutes);
 app.use('/contabilidad/periodo-contable', periodoContableRoutes);
+app.use('/contabilidad/reportes', reportRoutes);
 app.use('/contabilidad/libro-diario', libroDiario);
 app.use("/contabilidad/libro-mayor", libroMayorRoutes);
 app.use('/contabilidad/asientos-contables', AsientoContableRoutes);
