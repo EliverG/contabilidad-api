@@ -1,31 +1,31 @@
 import { Request, Response } from "express";
-import { CuentaContableService } from "../services/CuentaContableService";
+import { LibroDiarioService } from "../services/LibroDiarioService";
 
-const service = new CuentaContableService();
+const service = new LibroDiarioService();
 
-export class CuentaContableController {
+export class LibroDiarioController {
   async getAll(req: Request, res: Response) {
-    const cuentas = await service.getAll();
-    res.json(cuentas);
+    const diario = await service.getAll();
+    res.json(diario);
   }
 
   async getById(req: Request, res: Response): Promise<void> {
-    const cuenta = await service.getById(+req.params.id);
-    if (!cuenta){
-      res.status(404).json({ message: "Cuenta no encontrada" });
+    const diario = await service.getById(+req.params.id);
+    if (!diario){
+      res.status(404).json({ message: "libro diario no encontrada" });
     }else{
-      res.json(cuenta);
+      res.json(diario);
     }
   }
 
   async create(req: Request, res: Response) {
     try {
-      const nuevaCuenta = await service.create(req.body);
-      res.status(201).json(nuevaCuenta);
+      const nuevoLibro = await service.create(req.body);
+      res.status(201).json(nuevoLibro);
     } catch (error) {
       res
         .status(400)
-        .json({ message: "Error al crear cuenta contable", error });
+        .json({ message: "Error al crear libro diario contable", error });
     }
   }
 
@@ -33,7 +33,7 @@ export class CuentaContableController {
     try {
       const eliminado = await service.remove(+req.params.id);
       if (!eliminado) {
-        res.status(404).json({ message: "Cuenta no encontrada" });
+        res.status(404).json({ message: "libro diario no encontrada" });
       }else{
         res
         .status(200)

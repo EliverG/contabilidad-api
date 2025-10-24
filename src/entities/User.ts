@@ -14,7 +14,7 @@ export class User {
 
   @Column({name: "NOMBRE"})
   nombre!: string;
-
+  
   @Column({name: "EMAIL"})
   email!: string;
 
@@ -23,4 +23,6 @@ export class User {
 
   @Column({name: 'ESTADO'})
   estado!: string;
+
+
 }

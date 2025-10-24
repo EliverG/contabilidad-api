@@ -2,8 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn
 } from 'typeorm';
 
 @Entity({ name: 'CUENTA_CONTABLE', schema: 'CONTABILIDAD' })

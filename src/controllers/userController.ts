@@ -30,7 +30,7 @@ export class UserController {
   async createUser(req: Request, res: Response): Promise<void> {
     try {
       const user = new User();
-     
+
       user.username = req.body.username;
       user.password = req.body.password;
       user.nombre = req.body.nombre;
