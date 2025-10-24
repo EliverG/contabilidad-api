@@ -6,16 +6,11 @@ export class BalanceGeneralService {
     try {
       console.log('🔄 Generando balance para empresa:', idEmpresa, 'periodo:', idPeriodo);
 
-      // Verificar que la empresa y periodo existen
-      const empresaExists = await AppDataSource.query(
-        'SELECT 1 FROM EMPRESA WHERE id_empresa = :1',
-        [idEmpresa]
-      );
-      
-      const periodoExists = await AppDataSource.query(
-        'SELECT 1 FROM PERIODO_CONTABLE WHERE id_periodo = :1',
-        [idPeriodo]
-      );
+      // Validar existencia de empresa y periodo
+      const [empresaExists, periodoExists] = await Promise.all([
+        AppDataSource.query('SELECT 1 FROM EMPRESA WHERE id_empresa = :1', [idEmpresa]),
+        AppDataSource.query('SELECT 1 FROM PERIODO_CONTABLE WHERE id_periodo = :1', [idPeriodo])
+      ]);
 
       if (empresaExists.length === 0) {
         throw new Error(`Empresa con ID ${idEmpresa} no existe`);
@@ -25,15 +20,7 @@ export class BalanceGeneralService {
         throw new Error(`Periodo con ID ${idPeriodo} no existe`);
       }
 
-      
-      
-      
-      
-      
-      
-      
-      
-      // Consulta principal
+      // Consulta SQL para obtener saldos
       const query = `
         SELECT 
           cc.codigo,
@@ -60,22 +47,12 @@ export class BalanceGeneralService {
         ORDER BY cc.codigo
       `;
 
-      console.log('📊 Ejecutando consulta SQL...');
       const resultados = await AppDataSource.query(query, [idEmpresa, idPeriodo]);
-      console.log('✅ Resultados obtenidos:', resultados);
-      
-      // CORREGIR: Usar MAYÚSCULAS para filtrar (Oracle devuelve en mayúsculas)
+
       const activos = resultados.filter((r: any) => r.TIPO === 'ACTIVO');
       const pasivos = resultados.filter((r: any) => r.TIPO === 'PASIVO');
       const patrimonio = resultados.filter((r: any) => r.TIPO === 'PATRIMONIO');
 
-      console.log('📈 Cuentas encontradas:', {
-        activos: activos.length,
-        pasivos: pasivos.length,
-        patrimonio: patrimonio.length
-      });
-
-      // Mapear los resultados a minúsculas para el frontend
       const balance: BalanceGeneral = {
         empresaId: idEmpresa,
         periodoId: idPeriodo,
@@ -88,13 +65,6 @@ export class BalanceGeneralService {
         totalPatrimonio: this.calcularTotal(patrimonio)
       };
 
-      console.log('💰 Balance generado exitosamente');
-      console.log('📊 Resumen balance:', {
-        totalActivos: balance.totalActivos,
-        totalPasivos: balance.totalPasivos,
-        totalPatrimonio: balance.totalPatrimonio
-      });
-      
       return balance;
     } catch (error: any) {
       console.error('❌ Error en generarBalance:', error);
@@ -102,28 +72,9 @@ export class BalanceGeneralService {
     }
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // 🔍 Reporte detallado
   async generarReporteDetallado(idEmpresa: number, idPeriodo: number): Promise<any> {
     try {
-      console.log('🔄 Generando reporte detallado para empresa:', idEmpresa, 'periodo:', idPeriodo);
-
       const query = `
         SELECT 
           ac.numero_asiento as "numeroAsiento",
@@ -153,7 +104,7 @@ export class BalanceGeneralService {
       `;
 
       const resultados = await AppDataSource.query(query, [idEmpresa, idPeriodo]);
-      
+
       return {
         empresaId: idEmpresa,
         periodoId: idPeriodo,
@@ -165,7 +116,7 @@ export class BalanceGeneralService {
           tipoAsiento: r.tipoAsiento,
           codigoCuenta: r.codigoCuenta,
           nombreCuenta: r.nombreCuenta,
-          tipoCuenta: r.TIPOCUENTA,
+          tipoCuenta: r.tipoCuenta,
           descripcionMovimiento: r.descripcionMovimiento,
           debito: parseFloat(r.DEBITO || 0),
           credito: parseFloat(r.CREDITO || 0),
@@ -185,10 +136,9 @@ export class BalanceGeneralService {
     }
   }
 
+  // 🔍 Reporte por sección
   async generarReportePorSeccion(idEmpresa: number, idPeriodo: number, seccion: string): Promise<any> {
     try {
-      console.log(`🔄 Generando reporte de ${seccion} para empresa:`, idEmpresa);
-
       const query = `
         SELECT 
           ac.numero_asiento as "numeroAsiento",
@@ -214,7 +164,7 @@ export class BalanceGeneralService {
       `;
 
       const resultados = await AppDataSource.query(query, [idEmpresa, idPeriodo, seccion]);
-      
+
       return {
         empresaId: idEmpresa,
         periodoId: idPeriodo,
@@ -239,111 +189,18 @@ export class BalanceGeneralService {
     }
   }
 
-
-
-
-
-
-private mapearCuentas(cuentas: any[]): CuentaBalance[] {
-  return cuentas.map(cuenta => {
-    // DEBUG: Log para verificar los datos crudos
-    console.log('🔍 Cuenta cruda:', {
-      codigo: cuenta.CODIGO,
-      nombre: cuenta.nombreCuenta,
-      saldoRaw: cuenta.SALDO,
-      saldoType: typeof cuenta.SALDO
-    });
-
-    const saldo = parseFloat(cuenta.SALDO) || 0;
-    
-    return {
+  // Utilidades
+  private mapearCuentas(cuentas: any[]): CuentaBalance[] {
+    return cuentas.map(cuenta => ({
       codigo: cuenta.CODIGO,
       nombreCuenta: cuenta.nombreCuenta,
-      tipo: cuenta.TIPO as 'ACTIVO' | 'PASIVO' | 'PATRIMONIO',
-      naturaleza: cuenta.NATURALEZA as 'DEUDORA' | 'ACREEDORA',
-      saldo: saldo
-    };
-  });
-}
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-  
+      tipo: cuenta.TIPO,
+      naturaleza: cuenta.NATURALEZA,
+      saldo: parseFloat(cuenta.SALDO) || 0
+    }));
+  }
 
   private calcularTotal(cuentas: any[]): number {
     return cuentas.reduce((sum, cuenta) => sum + parseFloat(cuenta.SALDO || 0), 0);
   }
-
-  async generarBalancePorAnio(idEmpresa: number, anio: number): Promise<BalanceGeneral> {
-    console.log('📅 Generando balance por año:', anio);
-
-    const periodos = await AppDataSource.query(
-      `SELECT id_periodo FROM PERIODO_CONTABLE 
-       WHERE id_empresa = :1 AND EXTRACT(YEAR FROM fecha_inicio) = :2`,
-      [idEmpresa, anio]
-    );
-
-    if (periodos.length === 0) {
-      throw new Error(`No se encontraron periodos para el año ${anio}`);
-    }
-
-    const periodosIds = periodos.map((p: any) => p.ID_PERIODO || p.id_periodo);
-    console.log('✅ Periodos del año:', periodosIds);
-
-    const query = `
-      SELECT 
-        cc.codigo,
-        cc.nombre as nombre_cuenta,
-        cc.tipo,
-        cc.naturaleza,
-        SUM(CASE 
-          WHEN cc.naturaleza = 'DEUDORA' THEN (da.debito - da.credito)
-          ELSE (da.credito - da.debito)
-        END) as saldo
-      FROM CUENTA_CONTABLE cc
-      LEFT JOIN DETALLE_ASIENTO da ON cc.id_cuenta = da.id_cuenta
-      LEFT JOIN ASIENTO_CONTABLE ac ON da.id_asiento = ac.id_asiento
-      LEFT JOIN PERIODO_CONTABLE pc ON ac.id_periodo = pc.id_periodo
-      LEFT JOIN EMPRESA emp ON ac.id_empresa = emp.id_empresa
-      WHERE emp.id_empresa = :1
-        AND pc.id_periodo IN (${periodosIds.join(',')})
-        AND ac.estado = 'CONTABILIZADO'
-        AND cc.tipo IN ('ACTIVO', 'PASIVO', 'PATRIMONIO')
-      GROUP BY cc.codigo, cc.nombre, cc.tipo, cc.naturaleza
-      ORDER BY cc.codigo
-    `;
-
-    const resultado = await AppDataSource.query(query, [idEmpresa]);
-
-    // Separar las cuentas por tipo
-    const activos = resultado.filter((r: any) => r.TIPO === 'ACTIVO');
-    const pasivos = resultado.filter((r: any) => r.TIPO === 'PASIVO');
-    const patrimonio = resultado.filter((r: any) => r.TIPO === 'PATRIMONIO');
-
-    return {
-      empresaId: idEmpresa,
-      periodoId: 0,
-      fechaGeneracion: new Date().toISOString(),
-      activos: this.mapearCuentas(activos),
-      pasivos: this.mapearCuentas(pasivos),
-      patrimonio: this.mapearCuentas(patrimonio),
-      totalActivos: this.calcularTotal(activos),
-      totalPasivos: this.calcularTotal(pasivos),
-      totalPatrimonio: this.calcularTotal(patrimonio)
-    };
-  }
 }
-

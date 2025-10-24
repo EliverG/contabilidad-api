@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors"; //Borrar despues
 import userRoutes from "./routers/userRoutes"; // Importamos las rutas de usuario
 import CuentaContableRoutes from "./routers/CuentaContableRoutes";
-import empresaRoutes from './routers/empresaRoutes';
+import empresaRoutes from './routers/EmpresaRoutes';
 import periodoContableRoutes from './routers/PeriodoContableRoutes';
 import libroDiario from './routers/LibroDiarioRoutes';
 import libroMayorRoutes from "./routers/libroMayorRoutes";
@@ -12,7 +12,7 @@ import PeriodoRoutes from "./routers/PeriodoRoutes";
 // Configuración para recibir JSON en el cuerpo de las solicitudes
 const app = express();
 app.use(express.json());
-
+app.use(cors()); // 👈 ¡Mantén esto!
 // Configuración de rutas
 app.use("/contabilidad", userRoutes);
 app.use('/contabilidad/cuentas-contables', CuentaContableRoutes);

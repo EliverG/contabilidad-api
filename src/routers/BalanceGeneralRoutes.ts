@@ -2,22 +2,20 @@
 import { Router } from 'express';
 import { BalanceGeneralController } from '../controllers/BalanceGeneralController';
 
-const balanceGeneralController = new BalanceGeneralController();
 const router = Router();
+const controller = new BalanceGeneralController();
 
-router.post('/generar', (req, res) => balanceGeneralController.generarBalance(req, res));
+// 🧾 Generación de datos
+router.post('/generar', (req, res) => controller.generarBalance(req, res));
+router.post('/reporte-detallado', (req, res) => controller.generarReporteDetallado(req, res));
+router.post('/reporte-seccion', (req, res) => controller.generarReportePorSeccion(req, res));
 
+// 📄 Exportaciones
+router.post('/exportar-pdf', (req, res) => controller.exportarPDF(req, res));
+router.post('/exportar-excel', (req, res) => controller.exportarExcel(req, res));
 
-
-
-router.post('/reporte-detallado', (req, res) => balanceGeneralController.generarReporteDetallado(req, res));
-router.post('/reporte-seccion', (req, res) => balanceGeneralController.generarReportePorSeccion(req, res));
-router.post('/exportar-excel', (req, res) => balanceGeneralController.exportarExcel(req, res));
-router.post('/exportar-pdf', (req, res) => balanceGeneralController.exportarPDF(req, res));
-router.get('/prueba-pdf', (req, res) => balanceGeneralController.exportarPDFPrueba(req, res));
-router.get('/prueba-excel', (req, res) => balanceGeneralController.exportarExcelPrueba(req, res));
-
-
-
+// 🧪 Rutas de prueba
+router.get('/prueba-pdf', (req, res) => controller.exportarPDFPrueba(req, res));
+router.get('/prueba-excel', (req, res) => controller.exportarExcelPrueba(req, res));
 
 export default router;

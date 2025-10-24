@@ -1,49 +1,46 @@
-// types/Reportes.ts
+export interface MovimientoContableDetallado {
+  fecha: string | number | Date;
+  numeroAsiento: string;
+  codigoCuenta: string;
+  nombreCuenta: string;
+  descripcionMovimiento?: string;
+  descripcionAsiento?: string;
+  debito: number;
+  credito: number;
+  centroCosto?: {
+    codigo: string;
+    nombre: string;
+  };
+  proyecto?: {
+    codigo: string;
+    nombre: string;
+  };
+}
+
 export interface ReporteDetallado {
   empresaId: number;
   periodoId: number;
   fechaGeneracion: string;
-  asientos: AsientoDetallado[];
+  asientos: MovimientoContableDetallado[];
 }
 
-export interface AsientoDetallado {
+export interface MovimientoContableSeccion {
+  fecha: string | number | Date;
   numeroAsiento: string;
-  fecha: string;
-  descripcionAsiento: string;
-  tipoAsiento: string;
   codigoCuenta: string;
   nombreCuenta: string;
-  tipoCuenta: string;
-  descripcionMovimiento: string;
+  descripcionMovimiento?: string;
+  descripcionAsiento?: string;
   debito: number;
   credito: number;
-  centroCosto: {
-    codigo: string;
-    nombre: string;
-  } | null;
-  proyecto: {
-    codigo: string;
-    nombre: string;
-  } | null;
+  centroCosto?: string;
+  proyecto?: string;
 }
 
 export interface ReporteSeccion {
   empresaId: number;
   periodoId: number;
-  seccion: string;
+  seccion: 'ACTIVO' | 'PASIVO' | 'PATRIMONIO';
   fechaGeneracion: string;
-  movimientos: MovimientoSeccion[];
-}
-
-export interface MovimientoSeccion {
-  numeroAsiento: string;
-  fecha: string;
-  descripcionAsiento: string;
-  codigoCuenta: string;
-  nombreCuenta: string;
-  descripcionMovimiento: string;
-  debito: number;
-  credito: number;
-  centroCosto: string;
-  proyecto: string;
+  movimientos: MovimientoContableSeccion[];
 }

@@ -1,8 +1,6 @@
 export interface CuentaBalance {
   codigo: string;
   nombreCuenta: string;
-  tipo: 'ACTIVO' | 'PASIVO' | 'PATRIMONIO';
-  naturaleza: 'DEUDORA' | 'ACREEDORA';
   saldo: number;
 }
 
