@@ -30,13 +30,19 @@ export class UserController {
   async createUser(req: Request, res: Response): Promise<void> {
     try {
       const user = new User();
-      user.firstName = req.body.firstName;
-      user.lastName = req.body.lastName;
-      user.age = req.body.age;
+     
+      user.username = req.body.username;
+      user.password = req.body.password;
+      user.nombre = req.body.nombre;
+      user.email = req.body.email;
+      user.rol = req.body.rol;
+      user.estado = req.body.estado;
+
       const newUser = await userService.createUser(user);
       res.status(201).json(newUser);
     } catch (err) {
       res.status(500).send("Error al crear el usuario");
     }
   }
+
 }
