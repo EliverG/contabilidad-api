@@ -12,7 +12,7 @@ import PeriodoRoutes from "./routers/PeriodoRoutes";
 // Configuración para recibir JSON en el cuerpo de las solicitudes
 const app = express();
 app.use(express.json());
-app.use(cors()); // 👈 ¡Mantén esto!
+app.use(cors()); // corse para desarrollo, borrar despues
 // Configuración de rutas
 app.use("/contabilidad", userRoutes);
 app.use('/contabilidad/cuentas-contables', CuentaContableRoutes);
