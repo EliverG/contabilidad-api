@@ -41,6 +41,7 @@ export class LibroMayorService {
         d.DESCRIPCION                     AS "descripcionDetalle",
         c.CODIGO                          AS "codigoCuenta",
         c.NOMBRE                          AS "nombreCuenta"
+        c.NATURALEZA                      AS "naturaleza"
       FROM CONTABILIDAD.ASIENTO_CONTABLE a
       JOIN CONTABILIDAD.DETALLE_ASIENTO d ON d.ID_ASIENTO = a.ID_ASIENTO
       JOIN CONTABILIDAD.CUENTA_CONTABLE c ON c.ID_CUENTA = d.ID_CUENTA
@@ -49,6 +50,43 @@ export class LibroMayorService {
       `,
       qp
     );
+
+    // --- SALDO INICIAL (histórico hasta el día anterior a "desde") ---
+    const whereSI: string[] = [
+      "a.ESTADO = 'CONTABILIZADO'",
+      "a.ID_EMPRESA = :1",
+      "a.FECHA < TO_DATE(:2, 'YYYY-MM-DD')" // estrictamente antes de "desde"
+    ];
+    const qpSI: any[] = [empresa, desde];
+
+    if (cuenta) {
+      whereSI.push("d.ID_CUENTA = :3");
+      qpSI.push(cuenta);
+    }
+
+    const baseWhereSI = whereSI.join(" AND ");
+
+    // Saldo inicial por cuenta = SUM(debito - credito) histórico
+    const saldosIniciales = await AppDataSource.query(
+      `
+      SELECT
+        d.ID_CUENTA AS "idCuenta",
+        SUM(d.DEBITO) - SUM(d.CREDITO) AS "saldoInicial"
+      FROM CONTABILIDAD.ASIENTO_CONTABLE a
+      JOIN CONTABILIDAD.DETALLE_ASIENTO d ON d.ID_ASIENTO = a.ID_ASIENTO
+      WHERE ${baseWhereSI}
+      GROUP BY d.ID_CUENTA
+      ORDER BY d.ID_CUENTA
+      `,
+      qpSI
+    );
+
+    // Mapa: idCuenta -> saldoInicial
+    const siMap = new Map<number, number>();
+    for (const r of saldosIniciales) {
+      siMap.set(Number(r.idCuenta), Number(r.saldoInicial || 0));
+    }
+
 
     // 2) Totales por cuenta
     const totalesPorCuenta = await AppDataSource.query(
@@ -63,7 +101,7 @@ export class LibroMayorService {
       JOIN CONTABILIDAD.DETALLE_ASIENTO d ON d.ID_ASIENTO = a.ID_ASIENTO
       JOIN CONTABILIDAD.CUENTA_CONTABLE c ON c.ID_CUENTA = d.ID_CUENTA
       WHERE ${baseWhere}
-      GROUP BY d.ID_CUENTA, c.CODIGO, c.NOMBRE
+      GROUP BY d.ID_CUENTA, c.CODIGO, c.NOMBRE, c.NATURALEZA
       ORDER BY c.CODIGO
       `,
       qp
@@ -79,20 +117,26 @@ export class LibroMayorService {
 
     const resultados = totalesPorCuenta.map((t: any) => {
       const key = Number(t.idCuenta);
+      const totalDebito = Number(t.totalDebito || 0);
+      const totalCredito = Number(t.totalCredito || 0);
+      const saldoInicial = siMap.get(key) ?? 0;
+      const netoPeriodo = totalDebito - totalCredito;   // “neto aritmético” (sin naturaleza)
+      const saldoFinal = saldoInicial + netoPeriodo;
+
       return {
         cuenta: {
           id: key,
           codigo: t.codigoCuenta,
           nombre: t.nombreCuenta,
+          naturaleza: t.naturaleza as 'DEUDORA' | 'ACREEDORA',   // 👈 NUEVO
         },
-        totales: {
-          debito: Number(t.totalDebito || 0),
-          credito: Number(t.totalCredito || 0),
-        },
+        totales: { debito: totalDebito, credito: totalCredito },
+        saldoInicial,
+        netoPeriodo,
+        saldoFinal,
         movimientos: movimientosMap.get(key) ?? [],
       };
     });
-
     return { params, resultados };
   }
 }
